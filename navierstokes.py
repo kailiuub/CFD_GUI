@@ -4,19 +4,21 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
 #define contants
-nx=41
-ny=41
-nt=10
+nx=41     #x-grid step
+ny=41     #y-grid step
+#nt=10
 nit=10
-rho=1
-nu=0.1
-F=1
-dt=0.01
+rho=1     #density
+nu=0.1    #viscocity
+F=1       #initial source of u
+dt=0.01   #time step
+wd=3      #x width
+ht=5      #y width
 
-dx=2/(nx-1)
-dy=2/(ny-1)
-x=np.linspace(0,2,nx)
-y=np.linspace(0,2,ny)
+dx=wd/(nx-1)
+dy=ht/(ny-1)
+x=np.linspace(0,wd,nx)
+y=np.linspace(0,ht,ny)
 
 #define variables
 u=np.zeros((ny,nx))
@@ -79,6 +81,7 @@ def pressure_poisson(b,p):
     return p
 
 def navierstokes(u,v,p):
+  print(nu)  
   udiff=1  # initial error value
   stepcount=0
   b=np.zeros((ny,nx))  #b is treated as a local variable
@@ -179,6 +182,7 @@ def figplot():
 	us=np.zeros((ny,nx))
 	vs=np.zeros((ny,nx))
 	ps=np.zeros((ny,nx))
+	print(nu)
 	us,vs,ps=navierstokes(u,v,p)
 	X,Y=np.meshgrid(x,y)
 	fig=plt.figure(figsize=(4,3),dpi=100)

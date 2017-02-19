@@ -4,12 +4,15 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
+
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-#import matplotlib.pyplot as plt
-#import numpy as np
 import math
 
-from navierstokes import *
+import navierstokes
 
 # **** Implement Algorithms ****
 class FF (FigureCanvas):
@@ -18,34 +21,32 @@ class FF (FigureCanvas):
          
         FigureCanvas.__init__(self,self.fig)
         self.setParent(parent)
-        
-        self.us=np.zeros((ny,nx))
-        self.vs=np.zeros((ny,nx))
-        self.ps=np.zeros((ny,nx))
-        self.X,self.Y=np.meshgrid(x,y)
+        self.us=np.zeros((navierstokes.ny,navierstokes.nx))
+        self.vs=np.zeros((navierstokes.ny,navierstokes.nx))
+        self.ps=np.zeros((navierstokes.ny,navierstokes.nx))
+        self.X,self.Y=np.meshgrid(navierstokes.x,navierstokes.y)
         # fit plot size to figure frame
         self.compute()
         self.plotfig()
         
     # compute the results of u,v,p
     def compute(self): 
-        self.us,self.vs,self.ps=navierstokes(u,v,p)
+        self.us,self.vs,self.ps=navierstokes.navierstokes(navierstokes.u,navierstokes.v,navierstokes.p)
     
     # prepare fig plot to show
     def plotfig(self):
         
-        plt.contour(self.X,self.Y,self.us,cmap=cm.coolwarm,vmin=0,vmax=3.5)
-        plt.contourf(self.X,self.Y,self.us,cmap=cm.coolwarm,vmin=0,vmax=3.5)
+        plt.contour(self.X,self.Y,self.us,cmap=cm.coolwarm)
+        plt.contourf(self.X,self.Y,self.us,cmap=cm.coolwarm)
         plt.colorbar()
-        plt.clim(0,3.5)
         plt.quiver(self.X[::3,::3],self.Y[::3,::3],self.us[::3,::3],self.vs[::3,::3])
         plt.tight_layout()
 
     # responding to the click of button,accept new parameters, update plots
     def updatefig(self):
         self.compute()
-        plt.contour(self.X,self.Y,self.us,cmap=cm.coolwarm,vmin=0,vmax=3.5)
-        plt.contourf(self.X,self.Y,self.us,cmap=cm.coolwarm,vmin=0,vmax=3.5)       
+        plt.contour(self.X,self.Y,self.us,cmap=cm.plasma)
+        plt.contourf(self.X,self.Y,self.us,cmap=cm.plasma)       
         plt.quiver(self.X[::3,::3],self.Y[::3,::3],self.us[::3,::3],self.vs[::3,::3])        
         self.draw() 
 
@@ -120,12 +121,14 @@ class App(QMainWindow):
         self.tab4_layout=QVBoxLayout(self)
         self.fig=FF()
         self.tab4_layout.addWidget(self.fig)
+        # define labels and textinputs to accept the updated vars
         self.label3=QLabel('Enter Number of Elements',self)
         self.tab4_layout.addWidget(self.label3)
         self.entry1=QLineEdit('11',self)
         self.entry1.resize(50,20)
         self.entry1.move(200,10)
         self.tab4_layout.addWidget(self.entry1) 
+        # set up button to trigger the action
         self.but1=QPushButton('Plot',self)
         self.but1.clicked.connect(self.plotting)
         self.but1.resize(40,20)
@@ -148,6 +151,18 @@ class App(QMainWindow):
      
     @pyqtSlot()
     def plotting(self):
+        #collect values from textinputs
+        navierstokes.wd=3
+        navierstokes.ht=5
+        navierstokes.nu=0.5
+        navierstokes.rho=5
+        navierstokes.F=5
+        # nx=41 ny=41 rho=1 nu=0.1 F=1 dt=0.01 dx=wd/(nx-1) dy=ht/(ny-1) u=np.zeros((ny,nx)) v=np.zeros((ny,nx)) p=np.zeros((ny,nx))
+        #x=np.linspace(0,wd,nx)
+        #y=np.linspace(0,ht,ny)
+        #assign values to navierstokes.?? vars
+
+        #recompute and redraw the plot       
         self.fig.updatefig()   # update plots
                                 
 if __name__=="__main__":
