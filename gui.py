@@ -18,7 +18,7 @@ import navierstokes
 class FF (FigureCanvas):
     def __init__(self,parent=None):
         self.fig=plt.figure(figsize=(4,3),dpi=80,facecolor='white')
-         
+        self.ax=plt.subplot(111) 
         FigureCanvas.__init__(self,self.fig)
         self.setParent(parent)
         self.us=np.zeros((navierstokes.ny,navierstokes.nx))
@@ -27,27 +27,43 @@ class FF (FigureCanvas):
         self.X,self.Y=np.meshgrid(navierstokes.x,navierstokes.y)
         # fit plot size to figure frame
         self.compute()
-        self.plotfig()
-        
+        self.plotfig() 
+                
     # compute the results of u,v,p
     def compute(self): 
-        self.us,self.vs,self.ps=navierstokes.navierstokes(navierstokes.u,navierstokes.v,navierstokes.p)
+        self.us=np.zeros((navierstokes.ny,navierstokes.nx))
+        self.vs=np.zeros((navierstokes.ny,navierstokes.nx))
+        self.ps=np.zeros((navierstokes.ny,navierstokes.nx))
+        self.x=[]
+        self.y=[]
+        self.x,self.y,self.us,self.vs,self.ps=navierstokes.navierstokes(navierstokes.u,navierstokes.v,navierstokes.p)
+        self.X,self.Y=np.meshgrid(self.x, self.y)
     
     # prepare fig plot to show
     def plotfig(self):
-        
-        plt.contour(self.X,self.Y,self.us,cmap=cm.coolwarm)
-        plt.contourf(self.X,self.Y,self.us,cmap=cm.coolwarm)
-        plt.colorbar()
-        plt.quiver(self.X[::3,::3],self.Y[::3,::3],self.us[::3,::3],self.vs[::3,::3])
+        #self.ax.contour(self.X,self.Y,self.us,cmap=cm.plasma)
+        self.c1=self.ax.contourf(self.X,self.Y,self.us,cmap=cm.plasma)
+        self.cb1=plt.colorbar(self.c1)   # must include c as mappable object
+        self.cb1.set_ticklabels(np.round(np.linspace(0,np.amax(self.us)),1))
+        self.cb1.update_ticks()
+        self.cb1.draw_all()
+        self.ax.quiver(self.X[::3,::3],self.Y[::3,::3],self.us[::3,::3],self.vs[::3,::3])
+        plt.xlabel("x [a.u.]")
+        plt.ylabel("y [a.u.]")
         plt.tight_layout()
 
     # responding to the click of button,accept new parameters, update plots
     def updatefig(self):
         self.compute()
-        plt.contour(self.X,self.Y,self.us,cmap=cm.plasma)
-        plt.contourf(self.X,self.Y,self.us,cmap=cm.plasma)       
-        plt.quiver(self.X[::3,::3],self.Y[::3,::3],self.us[::3,::3],self.vs[::3,::3])        
+        self.ax.cla()  #clear plot and axis
+        self.c1=self.ax.contourf(self.X,self.Y,self.us,cmap=cm.plasma)
+        #self.cb1.on_mappable_changed(self.c1)
+        self.cb1.set_ticklabels(np.round(np.linspace(0,np.amax(self.us)),2))
+        self.cb1.update_ticks()
+        self.cb1.draw_all()    
+        self.ax.quiver(self.X[::3,::3],self.Y[::3,::3],self.us[::3,::3],self.vs[::3,::3])        
+        plt.xlabel("x [a.u.]")
+        plt.ylabel("y [a.u.]") 
         self.draw() 
 
 class App(QMainWindow):
@@ -90,11 +106,11 @@ class App(QMainWindow):
 	
         # create tab1 for intro with pdf file scroll bar      
         
-        self.tab1_layout=QVBoxLayout(self)
+        self.tab1_layout=QVBoxLayout()
         self.scrollArea=QScrollArea()
         self.pix1=QPixmap('eq.jpg')
         self.pix1r=self.pix1.scaledToWidth(700)            # rescale pixmap
-        self.label1=QLabel(self)
+        self.label1=QLabel()
         self.label1.setAlignment(Qt.AlignCenter)            # Center Alignment of Label
         self.label1.setPixmap(self.pix1r)
         self.scrollArea.setWidget(self.label1)
@@ -102,38 +118,51 @@ class App(QMainWindow):
         self.tab1.setLayout(self.tab1_layout)
         
         # create tab2 for Code1 Scrollbar
-        self.tab2_layout=QVBoxLayout(self)
-        self.textedit1=QPlainTextEdit()
+        self.tab2_layout=QVBoxLayout()
+        self.textedit1=QPlainTextEdit(readOnly=True)
         self.text1=open('navierstokes.py').read()
         self.textedit1.setPlainText(self.text1)
         self.tab2_layout.addWidget(self.textedit1)
         self.tab2.setLayout(self.tab2_layout)
 
         # create tab3 for Code2 Scrollbar
-        self.tab3_layout=QVBoxLayout(self)
-        self.textedit2=QPlainTextEdit()
+        self.tab3_layout=QVBoxLayout()
+        self.textedit2=QPlainTextEdit(readOnly=True)
         self.text2=open('gui.py').read()
         self.textedit2.setPlainText(self.text2)
         self.tab3_layout.addWidget(self.textedit2)
         self.tab3.setLayout(self.tab3_layout)
 
         # create tab4 for GUI  (input textboxs and button and results)
-        self.tab4_layout=QVBoxLayout(self)
+        self.tab4_layout=QGridLayout()
         self.fig=FF()
-        self.tab4_layout.addWidget(self.fig)
+        self.tab4_layout.addWidget(self.fig,0,0,6,4)
         # define labels and textinputs to accept the updated vars
-        self.label3=QLabel('Enter Number of Elements',self)
-        self.tab4_layout.addWidget(self.label3)
-        self.entry1=QLineEdit('11',self)
-        self.entry1.resize(50,20)
-        self.entry1.move(200,10)
-        self.tab4_layout.addWidget(self.entry1) 
+        self.label2=QLabel('width of channel (wd)')        
+        self.label3=QLabel('height of channel (ht)')
+        self.label4=QLabel('viscosity (nu)')
+        self.label5=QLabel('density (rho)')
+        self.label6=QLabel('initial condition (F)')
+        self.tab4_layout.addWidget(self.label2,7,0)
+        self.tab4_layout.addWidget(self.label3,7,2)
+        self.tab4_layout.addWidget(self.label4,8,0)
+        self.tab4_layout.addWidget(self.label5,8,2)
+        self.tab4_layout.addWidget(self.label6,9,0)
+        self.textin2=QLineEdit("3.0")   # wd
+        self.textin3=QLineEdit("5.0")   # ht
+        self.textin4=QLineEdit("0.1")   # nu
+        self.textin5=QLineEdit("1.0")   # rho
+        self.textin6=QLineEdit("1.0")   # F
+        self.tab4_layout.addWidget(self.textin2,7,1)
+        self.tab4_layout.addWidget(self.textin3,7,3)
+        self.tab4_layout.addWidget(self.textin4,8,1)
+        self.tab4_layout.addWidget(self.textin5,8,3)
+        self.tab4_layout.addWidget(self.textin6,9,1)
         # set up button to trigger the action
-        self.but1=QPushButton('Plot',self)
+        self.but1=QPushButton('Plot')
         self.but1.clicked.connect(self.plotting)
-        self.but1.resize(40,20)
-        self.but1.move(270,300)
-        self.tab4_layout.addWidget(self.but1) 
+        self.tab4_layout.addWidget(self.but1,10,0,2,4) 
+        # add tab4_layout to tab4
         self.tab4.setLayout(self.tab4_layout)
 
         # add tabs to layout1 and add layout1 to mainW1
@@ -144,24 +173,18 @@ class App(QMainWindow):
         self.mainW1.resize(760,560)
         self.mainW1.move(10,30)
 
-
     @pyqtSlot()
     def aboutact(self):
         resp=QMessageBox.question(self,'About','This GUI is designed to demonstrate Navier-Stokes-based Channel Flow Analysis',QMessageBox.Ok)
      
     @pyqtSlot()
     def plotting(self):
-        #collect values from textinputs
-        navierstokes.wd=3
-        navierstokes.ht=5
-        navierstokes.nu=0.5
-        navierstokes.rho=5
-        navierstokes.F=5
-        # nx=41 ny=41 rho=1 nu=0.1 F=1 dt=0.01 dx=wd/(nx-1) dy=ht/(ny-1) u=np.zeros((ny,nx)) v=np.zeros((ny,nx)) p=np.zeros((ny,nx))
-        #x=np.linspace(0,wd,nx)
-        #y=np.linspace(0,ht,ny)
-        #assign values to navierstokes.?? vars
-
+        #collect values from textinputs adn assign to navierstokes.vars
+        navierstokes.wd=float(self.textin2.text())
+        navierstokes.ht=float(self.textin3.text())
+        navierstokes.nu=float(self.textin4.text())
+        navierstokes.rho=float(self.textin5.text())
+        navierstokes.F=float(self.textin6.text())
         #recompute and redraw the plot       
         self.fig.updatefig()   # update plots
                                 

@@ -8,12 +8,12 @@ nx=41     #x-grid step
 ny=41     #y-grid step
 #nt=10
 nit=10
-rho=1     #density
+rho=1.0     #density
 nu=0.1    #viscocity
-F=1       #initial source of u
+F=1.0       #initial source of u
 dt=0.01   #time step
-wd=3      #x width
-ht=5      #y width
+wd=3.0      #x width
+ht=5.0      #y width
 
 dx=wd/(nx-1)
 dy=ht/(ny-1)
@@ -80,8 +80,13 @@ def pressure_poisson(b,p):
     
     return p
 
-def navierstokes(u,v,p):
-  print(nu)  
+def navierstokes(u,v,p):  
+  u=np.zeros((ny,nx))     #reclear all arrays for brandnew run
+  v=np.zeros((ny,nx))
+  p=np.zeros((ny,nx))
+  x=np.linspace(0,wd,nx)  #refresh x and y after textinput
+  y=np.linspace(0,ht,ny)
+  
   udiff=1  # initial error value
   stepcount=0
   b=np.zeros((ny,nx))  #b is treated as a local variable
@@ -176,14 +181,13 @@ def navierstokes(u,v,p):
     udiff = (np.sum(u) - np.sum(un)) / np.sum(u)
     stepcount += 1
   print(stepcount)
-  return u,v,p
+  return x,y,u,v,p
 
 def figplot():
 	us=np.zeros((ny,nx))
 	vs=np.zeros((ny,nx))
 	ps=np.zeros((ny,nx))
-	print(nu)
-	us,vs,ps=navierstokes(u,v,p)
+	x,y,us,vs,ps=navierstokes(x,y,u,v,p)
 	X,Y=np.meshgrid(x,y)
 	fig=plt.figure(figsize=(4,3),dpi=100)
 	fig.suptitle('Channel Flow - Navier-Stokes',fontsize=10)
