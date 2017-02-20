@@ -48,8 +48,8 @@ class FF (FigureCanvas):
         self.cb1.update_ticks()
         self.cb1.draw_all()
         self.ax.quiver(self.X[::3,::3],self.Y[::3,::3],self.us[::3,::3],self.vs[::3,::3])
-        plt.xlabel("x [a.u.]")
-        plt.ylabel("y [a.u.]")
+        plt.xlabel("x")
+        plt.ylabel("y")
         plt.tight_layout()
 
     # responding to the click of button,accept new parameters, update plots
