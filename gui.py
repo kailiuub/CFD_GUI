@@ -57,13 +57,13 @@ class FF (FigureCanvas):
         self.compute()
         self.ax.cla()  #clear plot and axis
         self.c1=self.ax.contourf(self.X,self.Y,self.us,cmap=cm.plasma)
-        #self.cb1.on_mappable_changed(self.c1)
-        self.cb1.set_ticklabels(np.round(np.linspace(0,np.amax(self.us)),2))
-        self.cb1.update_ticks()
-        self.cb1.draw_all()    
+        #self.cb1.on_mappable_changed(self.c1)   # update colorbar without changing ticks
+        self.cb1.set_ticklabels(np.round(np.linspace(0,np.amax(self.us)),2),update_ticks=True) # immediate update of ticks
+        #self.cb1.update_ticks()
+        #self.cb1.draw_all()    
         self.ax.quiver(self.X[::3,::3],self.Y[::3,::3],self.us[::3,::3],self.vs[::3,::3])        
-        plt.xlabel("x [a.u.]")
-        plt.ylabel("y [a.u.]") 
+        plt.xlabel("x")
+        plt.ylabel("y") 
         self.draw() 
 
 class App(QMainWindow):
